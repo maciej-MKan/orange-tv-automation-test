@@ -1,0 +1,23 @@
+version: '3'
+services:
+  appium:
+    build:
+      context: ./
+      dockerfile: Dockerfile.appium
+    ports:
+      - "4723:4723"
+    networks:
+      - app-network
+
+  java-app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    networks:
+      - app-network
+    depends_on:
+      - appium
+
+networks:
+  app-network:
+

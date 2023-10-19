@@ -1,0 +1,15 @@
+# base img for Node.js
+FROM node:lts
+
+# install appium
+RUN npm install -g appium
+
+# install appium drivers
+RUN appium driver install uiautomator2
+
+# work dir
+WORKDIR /appium
+
+# run appium
+CMD ["appium", "-a", "0.0.0.0", "-p", "4723"]
+
