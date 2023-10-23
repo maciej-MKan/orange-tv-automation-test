@@ -1,5 +1,21 @@
-# base img for Node.js
-FROM node:lts
+# base img for ubuntu
+FROM ubuntu:22.04
+
+# Zainstaluj narzędzia i zależności potrzebne do instalacji Node.js i NPM
+RUN apt-get update
+RUN apt-get install -y curl
+RUN apt-get update && apt-get install -y ca-certificates curl gnupg
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+
+# Instalacja node.js
+# RUN curl -sL https://deb.nodesource.com/setup_20.x --no-deprecation | bash -
+RUN apt-get update
+RUN apt-get install -y nodejs
+RUN npm install -g npm
+
+RUN node -v
+RUN npm -v
 
 # install appium
 RUN npm install -g appium
@@ -7,8 +23,65 @@ RUN npm install -g appium
 # install appium drivers
 RUN appium driver install uiautomator2
 
-# work dir
+#=============
+# Set WORKDIR
+#=============
+WORKDIR /
+
+RUN apt-get -qqy update && \
+    apt-get -qqy --no-install-recommends install \
+    openjdk-8-jdk \
+    ca-certificates \
+    tzdata \
+    zip \
+    unzip \
+    wget \
+    libqt5webkit5 \
+    libgconf-2-4 \
+    xvfb \
+    gnupg \
+  && rm -rf /var/lib/apt/lists/*
+
+#===============
+# Set JAVA_HOME
+#===============
+ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64/jre" \
+    PATH=$PATH:$JAVA_HOME/bin
+
+#=====================
+# Install Android SDK
+#=====================
+ ARG SDK_VERSION=sdk-tools-linux-3859397
+ ARG ANDROID_BUILD_TOOLS_VERSION=26.0.0
+ ARG ANDROID_PLATFORM_VERSION="android-25"
+
+ ENV SDK_VERSION=$SDK_VERSION \
+    ANDROID_BUILD_TOOLS_VERSION=$ANDROID_BUILD_TOOLS_VERSION \
+    ANDROID_HOME=/root
+
+ RUN wget -O tools.zip https://dl.google.com/android/repository/${SDK_VERSION}.zip && \
+    unzip tools.zip && rm tools.zip && \
+    chmod a+x -R $ANDROID_HOME && \
+    chown -R root:root $ANDROID_HOME
+
+# RUN apt-get install -y androidsdk
+# RUN apt-get install -y sdkmanager
+
+ENV PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin
+
+# https://askubuntu.com/questions/885658/android-sdk-repositories-cfg-could-not-be-loaded
+ RUN mkdir -p ~/.android && \
+    touch ~/.android/repositories.cfg && \
+    echo y | sdkmanager "platform-tools" && \
+    echo y | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION" && \
+    echo y | sdkmanager "platforms;$ANDROID_PLATFORM_VERSION"
+
+ENV PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools
+
 WORKDIR /appium
+
+# Copy APK file
+COPY ./orange-tv-go.apk app.apk
 
 # run appium
 CMD ["appium", "-a", "0.0.0.0", "-p", "4723"]
