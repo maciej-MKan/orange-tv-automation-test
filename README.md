@@ -1,4 +1,4 @@
-# Orange TV Go App Testing with Appium Java Client
+# Orange Go TV App Testing with Appium Java Client
 
 This project contains sample automation tests for the Orange TV Go application using Appium and the Appium Java Client. The tests cover various scenarios and allow you to verify the correct functioning of the application.
 
